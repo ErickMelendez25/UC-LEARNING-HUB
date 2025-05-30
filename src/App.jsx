@@ -11,7 +11,7 @@ import ProcesoConvalidacionExperiencia from './pages/PracticasPreprofesionales/P
 import ProcesoFusion from './pages/PracticasPreprofesionales/ProcesoFusion'; 
 import Admin from './pages/PracticasPreprofesionales/Admin';
 import { Administrador, Proceso2, Proceso3 } from './pages/Admision/ProcesosAdmision'; 
-import TerrenoDetalles from './components/TerrenoDetalles'; // Asegúrate de que la ruta sea correcta
+
 import { GoogleOAuthProvider } from '@react-oauth/google';  // Importa el proveedor de Google OAuth
 
 import IngenieriaPage from './carreras/IngenieriaPage';
@@ -97,21 +97,7 @@ function App() {
             <Route path="proceso-3" element={<ProtectedRoute element={<Proceso3 />} />} />
           </Route>
 
-          {/* Ruta para los detalles del terreno */}
-          <Route
-            path="/dashboard/terrenos/:id"
-            element={
-              <ProtectedRoute
-                element={
-                  <>
-                    <DashboardHeader />
-                    <TerrenoDetalles />
-                    <DashboardFooter />
-                  </>
-                }
-              />
-            }
-          />
+
 
           <Route
             path="/dashboard/ingenieria"
