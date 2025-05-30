@@ -1,6 +1,6 @@
 /* Estilos para el pie de página */
 .dashboard-footer {
-    background: #2C3E50; /* Gradiente verde institucional de la UNCP */
+    background: linear-gradient( #9bfa02); /* Gradiente verde institucional de la UNCP */
     padding: 30px 20px; /* Añadido más espacio para hacerlo más elegante */
     color: white;
     display: flex;
@@ -10,6 +10,7 @@
     box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.1); /* Sombra sutil en la parte superior */
     position: relative;
     z-index: 10;
+    margin-top: auto;
 }
 
 /* Contenedor de las opciones del pie de página */
@@ -25,18 +26,19 @@
 /* Estilo de cada item del pie de página */
 .footer-item {
     text-decoration: none;
-    color: white;
+    color: rgb(2, 2, 2);
     font-size: 1rem; /* Ajuste el tamaño de la fuente a 1rem por defecto */
     font-weight: 500;
     padding: 10px 20px; /* Ajuste de padding para mantener proporciones */
     border-radius: 30px; /* Bordes más redondeados */
-    background-color: rgba(255, 255, 255, 0.1); /* Fondo sutil, semi-transparente */
+    background-color: rgba(255, 255, 255); /* Fondo sutil, semi-transparente */
     transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease, padding 0.3s ease;
 }
 
 /* Efecto de hover para los items */
 .footer-item:hover {
     background-color: #F1C40F; /* Amarillo suave para resaltar sobre el fondo verde */
+    color: aliceblue;
     transform: translateY(-5px); /* Sutil efecto de elevar */
     box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2); /* Sombra más prominente */
     padding: 12px 25px; /* Aumentar el padding al hacer hover */
@@ -51,7 +53,7 @@
 .footer-text h3 {
     font-family: 'Playfair Display', serif; /* Aplica la nueva fuente */
     font-size: 1.2rem; /* Aumento del tamaño para hacerlo más visible */
-    color: rgb(255, 251, 0); /* Mantienes el color dorado */
+    color: rgb(255, 255, 255); /* Mantienes el color dorado */
     text-align: center;
     font-weight: 500; /* Peso de fuente un poco más fuerte para darle elegancia */
     font-style: italic; /* Si deseas que tenga un estilo itálico */
@@ -73,8 +75,7 @@
 /* Responsive: hacer que el pie de página se adapte a pantallas pequeñas */
 @media (max-width: 750px) {
     .dashboard-footer {
-        margin-top: 42%;
-        margin-bottom: 30px;
+        
        
         padding: 20px 10px; /* Menos espacio en pantallas pequeñas */
     }

@@ -4,7 +4,7 @@ import '../styles/DashboardFooter.css';
 
 function DashboardFooter() {
   const [showText, setShowText] = useState(false); // Estado para manejar la visibilidad del texto
-  const fullText = "Tu próximo hogar o terreno está a solo un clic. Compra, vende y encuentra lo que buscas con confianza.";
+  const fullText = "La mejor Plataforma a tu alcance";
 
   useEffect(() => {
     // Hacemos que el texto aparezca después de un pequeño retraso
@@ -21,6 +21,10 @@ function DashboardFooter() {
       {window.location.pathname === "/dashboard" && (
         <div className="footer-options">
           {/* Enlaces a las opciones que mencionaste */}
+          <Link to="/dashboard/contactanos" className="footer-item">Contáctanos</Link>
+          <Link to="/dashboard/mision" className="footer-item">Misión</Link>
+          <Link to="/dashboard/vision" className="footer-item">Visión</Link>
+          <Link to="/dashboard/valores" className="footer-item">Valores</Link>
 
         </div>
       )}

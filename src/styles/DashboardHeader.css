@@ -4,8 +4,9 @@
     justify-content: space-between;
     align-items: center;
     padding: 15px;
-    background-color:   #34495E;
-    color: rgb(255, 255, 255);
+    background-color:   #9bfa02;
+    color: rgb(3, 3, 3);
+    font-size: 3vh;
     position: relative; /* Cambiar de 'fixed' a 'relative' */
     top: 0;
     left: 0;

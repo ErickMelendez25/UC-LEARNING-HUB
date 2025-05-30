@@ -4,7 +4,7 @@
   justify-content: center;
   align-items: center;
   height: 100vh;
-  background: linear-gradient(135deg, #2d2c4e, #0c9790); /* Gradiente de colores institucionales */
+  background: linear-gradient(-104deg, #2216ce, #ff1818); /* Gradiente de colores institucionales */
   font-family: 'Roboto', sans-serif;
   padding: 0 20px;
 }
