@@ -10,7 +10,7 @@ const userId = usuario?.id ?? 102;
 
 const FREE_VIDEO_ID = '1';
 const apiUrl = process.env.NODE_ENV === 'production'
-  ? 'https://sateliterrreno-production.up.railway.app'
+  ? 'https://uc-learning-hub-production.up.railway.app'
   : 'http://localhost:5000';
 
 const IngenieriaPage = () => {
