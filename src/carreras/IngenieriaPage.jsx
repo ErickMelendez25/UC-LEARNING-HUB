@@ -2,215 +2,256 @@ import React, { useState, useEffect } from 'react';
 import ReactPlayer from 'react-player';
 import './IngenieriaPage.css';
 import SimulatedMercadoPago from '../components/SimulatedMercadoPago';
+import ChatBotBurbuja from '../components/ChatBotBurbuja';
 
-const videos = [
-    {
-        id: '1',
-        title: 'Introducción a la Ingeniería',
-        url: 'https://www.youtube.com/watch?v=Hf4MJH0jDb4',
-        description: 'Conoce el rol de la ingeniería en la sociedad actual.',
-        image: 'https://img.youtube.com/vi/Hf4MJH0jDb4/0.jpg',
-    },
-    {
-        id: '2',
-        title: 'Fundamentos de Física',
-        url: 'https://www.youtube.com/watch?v=17tqXgvCN0E',
-        description: 'Conceptos básicos para estudiantes de ingeniería.',
-        image: 'https://img.youtube.com/vi/17tqXgvCN0E/0.jpg',
-    },
-    {
-        id: '3',
-        title: 'Matemática para Ingenieros',
-        url: 'https://www.youtube.com/watch?v=g9eBJ5WT91A',
-        description: 'Aplicación de matemáticas en problemas reales.',
-        image: 'https://img.youtube.com/vi/g9eBJ5WT91A/0.jpg',
-    },
-    {
-        id: '4',
-        title: 'Electrónica Básica',
-        url: 'https://www.youtube.com/watch?v=sxIivFH1HUk',
-        description: 'Entiende los principios de circuitos electrónicos.',
-        image: 'https://img.youtube.com/vi/sxIivFH1HUk/0.jpg',
-    },
-    {
-        id: '5',
-        title: 'Programación en C++',
-        url: 'https://www.youtube.com/watch?v=zOjov-2OZ0E',
-        description: 'Introducción al lenguaje de programación más usado.',
-        image: 'https://img.youtube.com/vi/zOjov-2OZ0E/0.jpg',
-    },
-    {
-        id: '6',
-        title: 'Mecánica Clásica',
-        url: 'https://www.youtube.com/watch?v=8iW7bFvBI0s',
-        description: 'Movimiento, fuerzas y leyes de Newton.',
-        image: 'https://img.youtube.com/vi/8iW7bFvBI0s/0.jpg',
-    },
-    {
-        id: '7',
-        title: 'Termodinámica',
-        url: 'https://www.youtube.com/watch?v=RrBGyGZfKdw',
-        description: 'Energía, calor y eficiencia de sistemas.',
-        image: 'https://img.youtube.com/vi/RrBGyGZfKdw/0.jpg',
-    },
-    {
-        id: '8',
-        title: 'Materiales de Ingeniería',
-        url: 'https://www.youtube.com/watch?v=GQ0Y8tOXDA8',
-        description: 'Propiedades de los materiales y su uso.',
-        image: 'https://img.youtube.com/vi/GQ0Y8tOXDA8/0.jpg',
-    },
-    {
-        id: '9',
-        title: 'Estructuras y Resistencia',
-        url: 'https://www.youtube.com/watch?v=y1a0j4DJ1RI',
-        description: 'Estática y resistencia de materiales.',
-        image: 'https://img.youtube.com/vi/y1a0j4DJ1RI/0.jpg',
-    },
-    {
-        id: '10',
-        title: 'Ética Profesional',
-        url: 'https://www.youtube.com/watch?v=HqA6UeIFv4E',
-        description: 'La ética en el ejercicio de la ingeniería.',
-        image: 'https://img.youtube.com/vi/HqA6UeIFv4E/0.jpg',
-    },
-];
+const usuario = JSON.parse(localStorage.getItem("usuario"));
+const nombreUsuario = usuario?.nombre || "Anónimo";
+const userId = usuario?.id ?? 102;
+
+const FREE_VIDEO_ID = '1';
+const apiUrl = process.env.NODE_ENV === 'production'
+  ? 'https://sateliterrreno-production.up.railway.app'
+  : 'http://localhost:5000';
 
 const IngenieriaPage = () => {
-    const [selectedVideo, setSelectedVideo] = useState(null);
-    const [progress, setProgress] = useState({});
-    const [paymentStatus, setPaymentStatus] = useState({});
-    const [playedSeconds, setPlayedSeconds] = useState(0);
-    const [duration, setDuration] = useState(0);
-    const [selectedForPayment, setSelectedForPayment] = useState(null);
+  const [videos, setVideos] = useState([]);
+  const [likes, setLikes] = useState({});
+  const [commentsByVideo, setCommentsByVideo] = useState({});
+  const [paymentStatus, setPaymentStatus] = useState({});
+  const [selectedVideo, setSelectedVideo] = useState(null);
+  const [progress, setProgress] = useState({});
+  const [duration, setDuration] = useState(0);
+  const [selectedForPayment, setSelectedForPayment] = useState(null);
+  const [commentInput, setCommentInput] = useState('');
+  const [ratings, setRatings] = useState({});
+  const [primerVideoId, setPrimerVideoId] = useState(null);
 
     useEffect(() => {
-        const storedProgress = JSON.parse(localStorage.getItem('videoProgress')) || {};
-        setProgress(storedProgress);
-    }, []);
+    fetch(`${apiUrl}/api/user/${userId}/ratings`)
+      .then(res => res.ok ? res.json() : {})
+      .then(data => setRatings(data))
+      .catch(err => console.error("Error obteniendo ratings:", err));
+  }, []);
 
-    useEffect(() => {
-        localStorage.setItem('videoProgress', JSON.stringify(progress));
-    }, [progress]);
 
-    const handleProgress = (state) => {
-        if (selectedVideo) {
-            setPlayedSeconds(state.playedSeconds);
-            const percent = Math.min(100, Math.round((state.playedSeconds / duration) * 100));
-            setProgress((prev) => ({
-                ...prev,
-                [selectedVideo.id]: percent,
-            }));
-        }
+useEffect(() => {
+  fetch(`${apiUrl}/api/videos?userId=${userId}`)
+    .then(res => res.ok ? res.json() : Promise.reject('Error en API'))
+    .then(data => {
+      const videosData = Array.isArray(data.videos) ? data.videos : [];
+
+
+
+      setVideos(videosData);
+
+      const likesMap = Object.fromEntries((data.likes || []).map(id => [id, true]));
+      setLikes(likesMap);
+
+      const paidMap = Object.fromEntries((data.paid || []).map(id => [id, true]));
+
+      // Hacer gratuito el primer video
+      if (videosData.length > 0) {
+        const id = videosData[0].id;
+        setPrimerVideoId(id); // ← guardamos el ID del primer video
+        paidMap[id] = true; // marcar como gratuito
+      }
+
+      setPaymentStatus(paidMap);
+
+      const comments = data.comments || [];
+      const commentsGrouped = comments.reduce((acc, c) => {
+        if (!acc[c.video_id]) acc[c.video_id] = [];
+        acc[c.video_id].push({
+          user: c.user || 'Usuario',
+          text: c.comment || '',
+          date: c.date || new Date().toISOString(),
+        });
+        return acc;
+      }, {});
+      setCommentsByVideo(commentsGrouped);
+    })
+    .catch(err => {
+      console.error("Error cargando datos:", err);
+      setVideos([]);
+    });
+
+  setProgress(JSON.parse(localStorage.getItem('videoProgress')) || {});
+}, []);
+
+
+  useEffect(() => {
+    localStorage.setItem('videoProgress', JSON.stringify(progress));
+  }, [progress]);
+
+  const isFree = id => id.toString() === FREE_VIDEO_ID;
+  const isUnlocked = id => isFree(id) || paymentStatus[id];
+
+
+
+
+
+  const handleProgress = state => {
+    if (!selectedVideo) return;
+    const percent = Math.min(100, Math.round((state.playedSeconds / duration) * 100));
+    setProgress(prev => ({ ...prev, [selectedVideo.id]: percent }));
+    fetch(`${apiUrl}/api/videos/${selectedVideo.id}/behavior`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ event: 'watch', progress: percent, userId }),
+    });
+  };
+
+  const handlePayment = videoId => {
+    setPaymentStatus(prev => ({ ...prev, [videoId]: true }));
+    fetch(`${apiUrl}/api/videos/${videoId}/behavior`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ event: 'payment', userId }),
+    });
+  };
+
+  const handleLike = videoId => {
+    setLikes(prev => ({ ...prev, [videoId]: true }));
+    fetch(`${apiUrl}/api/videos/${videoId}/like`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId }),
+    });
+  };
+
+  const handleComment = videoId => {
+    if (!commentInput.trim()) return;
+    const comment = {
+      user: nombreUsuario,
+      text: commentInput,
+      date: new Date().toISOString(),
     };
+    setCommentsByVideo(prev => ({
+      ...prev,
+      [videoId]: [...(prev[videoId] || []), comment]
+    }));
+    fetch(`${apiUrl}/api/videos/${videoId}/comment`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, text: commentInput }),
+    });
+    setCommentInput('');
+  };
 
-    const handleDuration = (d) => {
-        setDuration(d);
-    };
+  const handleRating = (videoId, star) => {
+  setRatings(prev => ({ ...prev, [videoId]: star }));
 
-    const handlePayment = (videoId) => {
-        setPaymentStatus((prevStatus) => ({
-            ...prevStatus,
-            [videoId]: true,
-        }));
-    };
+  fetch(`${apiUrl}/api/videos/${videoId}/rate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId, rating: star }),
+  });
+};
 
-    return (
-        <div className="page-container">
-            <div className="video-grid">
-                {videos.map((video) => (
-                    <div key={video.id} className="video-card">
-                        <img src={video.image} alt={video.title} className="video-image" />
-                        <div className="progress-percentage">
-                            {progress[video.id] || 0}%
-                        </div>
-                        <h3>{video.title}</h3>
-                        <p>{video.description}</p>
+  return (
+    <div className="page-container">
+      <div className="video-grid">
+        {videos.length > 0 ? (
+          videos.map(video => (
+            <div key={video.id} className="card"> 
+            <img src={video.image || '/images/image2.jpg'} alt={video.title} className="thumbnail" />
 
-                        {paymentStatus[video.id] ? (
-                            <button
-                                className="access-button"
-                                onClick={() => setSelectedVideo(video)}
-                            >
-                                Ver Video
-                            </button>
-                        ) : (
-                            <div>
-                                <button
-                                    className="access-button"
-                                    onClick={() => setSelectedForPayment(video)}
-                                >
-                                    Realizar Pago
-                                </button>
-                                <p>Pago requerido para acceder al video.</p>
-                            </div>
-                        )}
-                    </div>
-                ))}
-            </div>
+              <div className="card-body">
+                <span
+                  className={`like-icon ${likes[video.id] ? 'liked' : ''}`}
+                  onClick={() => handleLike(video.id)}
+                  title="Me gusta"
+                >♥</span>
 
-            {selectedVideo && paymentStatus[selectedVideo.id] && (
-                <div className="video-modal-fullscreen">
-                    <div className="video-modal-layout">
-                        {/* Panel izquierdo */}
-                        <div className="left-panel">
-                            <h3>Contenido del curso</h3>
-                            {videos.map((video) => (
-                                <div
-                                    key={video.id}
-                                    className={`video-item ${selectedVideo.id === video.id ? 'active' : ''}`}
-                                    onClick={() => setSelectedVideo(video)}
-                                >
-                                    <img src={video.image} alt={video.title} />
-                                    <p>{video.title}</p>
-                                </div>
-                            ))}
-                        </div>
+                <h3>{video.title}</h3>
+                <h4 className="docente-nombre">Dictado por: {video.docente_nombre || 'Docente no especificado'}</h4>
+                <p className="curso-nombre">Curso: {video.titulo}</p>
+                <p className="curso-nombre">Curso: {video.curso_nombre}</p>
 
-                        {/* Panel derecho */}
-                        <div className="right-panel">
-                            <h2>{selectedVideo.title}</h2>
-                            <ReactPlayer
-                                url={selectedVideo.url}
-                                controls
-                                playing
-                                width="100%"
-                                height="500px"
-                                onProgress={handleProgress}
-                                onDuration={handleDuration}
-                            />
-                            <div className="progress-bar-container">
-                                <div className="button-container">
-                                    <button
-                                        onClick={() => setSelectedVideo(null)}
-                                        className="return-button"
-                                    >
-                                        Regresar a los cursos
-                                    </button>
-                                </div>
-                                <div
-                                    className="progress-bar"
-                                    style={{ width: `${progress[selectedVideo.id] || 0}%` }}
-                                />
-                            </div>
-                            <p>Avance: {progress[selectedVideo.id] || 0}%</p>
-                        </div>
-                    </div>
+                <p>{video.description}</p>
+
+                <div className="progress-bar-small">
+                  <div style={{ width: `${progress[video.id] || 0}%` }} className="progress-inner" />
                 </div>
-            )}
+                <p className="progress-label">{progress[video.id] || 0}% completado</p>
 
-            {selectedForPayment && (
-                <SimulatedMercadoPago
-                    courseTitle={selectedForPayment.title}
-                    onConfirm={() => {
-                        handlePayment(selectedForPayment.id);
-                        setSelectedForPayment(null);
-                    }}
-                    onCancel={() => setSelectedForPayment(null)}
-                />
-            )}
+                {isUnlocked(video.id) ? (
+                  <button className="btn" onClick={() => setSelectedVideo(video)}>
+                    {video.id === primerVideoId ? 'Video Gratuito' : 'Ver Video'}
+                  </button>
+                ) : (
+                  <>
+                    <button className="btn" onClick={() => setSelectedForPayment(video)}>Realizar Pago</button>
+                    <p className="requerido">Pago requerido</p>
+                  </>
+                )}
+              </div>
+
+            </div>
+          ))
+        ) : (
+          <p>No hay videos disponibles.</p>
+        )}
+      </div>
+
+      {selectedVideo && isUnlocked(selectedVideo.id) && (
+        <div className="modal">
+          <div className="modal-content two-columns">
+            <div className="left-column">
+              <ReactPlayer
+                url='https://www.youtube.com/watch?v=cjU1C78BsMc'
+                controls playing width="100%" height="300vh"
+                onProgress={handleProgress}
+                onDuration={setDuration}
+              />
+              <h2>{selectedVideo.title}</h2>
+              <p>Avance: {progress[selectedVideo.id] || 0}%</p>
+              <div className="rating-stars">
+                {[1, 2, 3, 4, 5].map(star => (
+                  <span
+                    key={star}
+                    className={`star ${ratings[selectedVideo.id] >= star ? 'filled' : ''}`}
+                    onClick={() => handleRating(selectedVideo.id, star)}
+                  >★</span>
+                ))}
+              </div>
+              <div className="btn-group">
+                <button className="btn cerrar" onClick={() => setSelectedVideo(null)}>Cerrar</button>
+                <button className="btn regresar" onClick={() => setSelectedVideo(null)}>← Regresar</button>
+              </div>
+            </div>
+            <div className="right-column">
+              <h3>Comentarios</h3>
+              <div className="comentarios">
+                {(commentsByVideo[selectedVideo.id] || []).map((c, i) => (
+                  <div key={i} className="comentario-item">
+                    <p><strong>{c.user}:</strong> {c.text}</p>
+                    <span>{new Date(c.date).toLocaleString()}</span>
+                  </div>
+                ))}
+              </div>
+              <textarea
+                placeholder="Escribe un comentario..."
+                value={commentInput}
+                onChange={e => setCommentInput(e.target.value)}
+              />
+              <button className="btn comentar" onClick={() => handleComment(selectedVideo.id)}>Comentar</button>
+            </div>
+          </div>
         </div>
-    );
+      )}
+
+      {selectedForPayment && (
+        <SimulatedMercadoPago
+          video={selectedForPayment}
+          onPaymentSuccess={() => handlePayment(selectedForPayment.id)}
+          onClose={() => setSelectedForPayment(null)}
+        />
+      )}
+
+      <ChatBotBurbuja />
+    </div>
+  );
 };
 
 export default IngenieriaPage;

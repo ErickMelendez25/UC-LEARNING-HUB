@@ -19,7 +19,7 @@ const __dirname = path.resolve();  // Obtener la ruta del directorio actual (cor
 
 // Configura CORS para permitir solicitudes solo desde tu frontend
 const corsOptions = {
-  origin: ['https://sateliterrreno-production.up.railway.app', 'http://localhost:5173', 'http://localhost:5000'],
+  origin: ['https://sateliterrreno-production.up.railway.app', 'http://localhost:5173', 'http://localhost:5000','https://educore.academionlinegpt.com'],
   methods: 'GET, POST, PUT, DELETE',
   allowedHeaders: 'Content-Type, Authorization',
 };
@@ -342,6 +342,206 @@ app.get('/api/usuarios/:id', async (req, res) => {
 });
 
 
+// ======================= BACKEND: Express API =======================
+
+// Obtener categorías
+app.get('/api/categorias', (req, res) => {
+  db.query('SELECT * FROM categorias', (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(rows);
+  });
+});
+
+// Obtener cursos (por categoría opcional)
+app.get('/api/cursos', (req, res) => {
+  const { categoria_id } = req.query;
+  const sql = categoria_id ? 'SELECT * FROM cursos WHERE categoria_id = ?' : 'SELECT * FROM cursos';
+  const params = categoria_id ? [categoria_id] : [];
+  db.query(sql, params, (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(rows);
+  });
+});
+
+// Obtener videos por curso
+app.get('/api/videos/:cursoId', (req, res) => {
+  const cursoId = req.params.cursoId;
+
+  db.query(`
+    SELECT 
+      videos.*, 
+      cursos.titulo AS curso_nombre, 
+      usuarios.nombre AS docente_nombre
+    FROM videos
+    JOIN cursos ON videos.id_curso = cursos.id
+    JOIN docentes ON cursos.id_docente = docentes.id_usuario
+    JOIN usuarios ON docentes.id_usuario = usuarios.id
+    WHERE cursos.id = ?
+  `, [cursoId], (err, rows) => {
+    if (err) {
+      console.error('Error al obtener videos del curso:', err);
+      return res.status(500).json({ error: err.message });
+    }
+
+    res.json(rows);
+  });
+});
+
+// Obtener todos los videos
+// Backend en Express (Node.js + MySQL)
+// GET /api/videos?userId=...
+
+app.get('/api/videos', (req, res) => {
+  const userId = req.query.userId;
+  if (!userId) return res.status(400).json({ error: 'Falta userId' });
+
+  const result = {};
+  
+  const queries = [
+    new Promise((resolve, reject) => {
+    db.query(`
+      SELECT 
+        videos.*, 
+        cursos.titulo AS curso_nombre, 
+        usuarios.nombre AS docente_nombre
+      FROM videos
+      JOIN cursos ON videos.id_curso = cursos.id
+      JOIN docentes ON cursos.id_docente = docentes.id_usuario
+      JOIN usuarios ON docentes.id_usuario = usuarios.id
+    `, (err, rows) => {
+      if (err) return reject(err);
+      result.videos = rows;
+      resolve();
+    });
+
+    }),
+    new Promise((resolve, reject) => {
+      db.query('SELECT video_id FROM user_likes WHERE user_id = ?', [userId], (err, rows) => {
+        if (err) return reject(err);
+        result.likes = rows.map(r => r.video_id);
+        resolve();
+      });
+    }),
+    new Promise((resolve, reject) => {
+      db.query('SELECT video_id FROM user_behavior WHERE user_id = ? AND event = "payment"', [userId], (err, rows) => {
+        if (err) return reject(err);
+        result.paid = rows.map(r => r.video_id);
+        resolve();
+      });
+    }),
+    new Promise((resolve, reject) => {
+      db.query(`
+        SELECT vc.video_id, vc.comment, vc.created_at as date, u.nombre as user
+        FROM video_comments vc
+        JOIN usuarios u ON u.id = vc.user_id
+        ORDER BY vc.created_at ASC
+      `, (err, rows) => {
+        if (err) return reject(err);
+        result.comments = rows;
+        resolve();
+      });
+    })
+  ];
+
+  Promise.all(queries)
+    .then(() => res.json(result))
+    .catch(err => res.status(500).json({ error: err.message }));
+});
+
+// Like de video
+app.post('/api/videos/:id/like', (req, res) => {
+  const vid = req.params.id;
+  const uid = req.body.userId;
+  db.query('INSERT INTO user_likes (user_id, video_id) VALUES (?, ?)', [uid, vid], (err) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ message: 'Like registrado' });
+  });
+});
+
+// Comentario
+app.post('/api/videos/:id/comment', (req, res) => {
+  const vid = req.params.id;
+  const uid = req.body.userId;
+  const text = req.body.text;
+  db.query('INSERT INTO video_comments (user_id, video_id, comment) VALUES (?, ?, ?)', [uid, vid, text], (err) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ message: 'Comentario agregado' });
+  });
+});
+
+// Registro de comportamiento
+app.post('/api/videos/:id/behavior', (req, res) => {
+  const { event, progress, userId } = req.body;
+  const vid = req.params.id;
+  db.query(
+    'INSERT INTO user_behavior (user_id, video_id, event, progress, timestamp) VALUES (?, ?, ?, ?, NOW())',
+    [userId, vid, event, progress || null],
+    (err) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ message: 'Behavior almacenado' });
+    }
+  );
+});
+
+// Outcome de curso
+app.post('/api/user_course_outcome', (req, res) => {
+  const { user_id, curso_id, outcome } = req.body;
+  db.query(
+    'INSERT INTO user_course_outcome (user_id, curso_id, outcome) VALUES (?, ?, ?)',
+    [user_id, curso_id, outcome],
+    (err) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ message: 'Resultado del curso guardado' });
+    }
+  );
+});
+
+// Recomendaciones
+app.post('/api/recommendations', (req, res) => {
+  const { userId, allVideoIds } = req.body;
+  const recommendations = allVideoIds.filter((_, index) => index % 2 === 0);
+  res.json({ recommendations });
+});
+
+
+//PARA LAS ESTRELLITAS
+app.post('/api/videos/:id/rate', (req, res) => {
+  const videoId = req.params.id;
+  const { userId, rating } = req.body;
+
+  if (!userId || !rating || rating < 1 || rating > 5) {
+    return res.status(400).json({ error: 'Datos inválidos' });
+  }
+
+  const sql = `
+    INSERT INTO video_ratings (user_id, video_id, rating)
+    VALUES (?, ?, ?)
+    ON DUPLICATE KEY UPDATE rating = ?`;
+
+  db.query(sql, [userId, videoId, rating, rating], (err) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ message: 'Calificación registrada' });
+  });
+});
+
+app.get('/api/user/:userId/ratings', (req, res) => {
+  const { userId } = req.params;
+
+  db.query(
+    'SELECT video_id, rating FROM video_ratings WHERE user_id = ?',
+    [userId],
+    (err, rows) => {
+      if (err) return res.status(500).json({ error: err.message });
+      const ratings = {};
+      rows.forEach(row => {
+        ratings[row.video_id] = row.rating;
+      });
+      res.json(ratings);
+    }
+  );
+});
+
+//MODELOS DE PREDICCION
 
 // Para cualquier otra ruta, servir el index.html
 app.use(express.static(path.join(__dirname, 'dist')));
