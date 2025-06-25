@@ -3,7 +3,7 @@ import axios from 'axios';
 import jwt_decode from 'jwt-decode';
 
 const BASE_URL = process.env.NODE_ENV === 'production'
-  ? 'https://sateliterrreno-production.up.railway.app'
+  ? 'https://uc-learning-hub-production.up.railway.app'
   : 'http://localhost:5000';
 
 export const login = async (correo, password) => {
