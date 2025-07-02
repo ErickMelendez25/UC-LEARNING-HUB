@@ -129,6 +129,141 @@
   border: 2px solid rgb(255, 255, 255);
 }
 
+/* ADMIN VIEW */
+.admin-view {
+  background: var(--card-bg);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  padding: 30px;
+  margin-bottom: 40px;
+  transition: transform var(--transition);
+}
+.admin-view:hover {
+  transform: translateY(-5px);
+}
+
+.admin-view h2 {
+  margin-top: 0;
+  color: var(--primary-color);
+  font-size: 1.8rem;
+  border-bottom: 2px solid var(--secondary-color);
+  padding-bottom: 8px;
+}
+
+.charts-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 30px;
+  margin-top: 20px;
+  justify-content: center;
+}
+
+.chart-block {
+  background: var(--bg-color);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  padding: 20px;
+  flex: 1 1 300px;
+  max-width: 450px;
+  text-align: center;
+  transition: box-shadow var(--transition);
+}
+.chart-block:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+}
+
+.chart-block h3 {
+  margin: 0 0 15px;
+  font-size: 1.2rem;
+  color: var(--secondary-color);
+}
+
+/* NORMAL DASHBOARD */
+.search-bar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.search-input {
+  flex: 1;
+  padding: 10px;
+  border: 2px solid var(--secondary-color);
+  border-radius: var(--border-radius);
+  font-size: 1rem;
+  transition: border-color var(--transition);
+}
+.search-input:focus {
+  border-color: var(--accent-color);
+  outline: none;
+}
+.search-btn {
+  padding: 0 20px;
+  background: var(--secondary-color);
+  color: #fff;
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background var(--transition);
+}
+.search-btn:hover {
+  background: var(--accent-color);
+}
+.search-error {
+  color: #c0392b;
+  margin-left: 10px;
+  align-self: center;
+}
+
+/* OPTIONS GRID */
+.options-section {
+  margin-top: 20px;
+}
+.options-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 15px;
+}
+.option-btn {
+  display: block;
+  padding: 15px;
+  background: var(--card-bg);
+  color: var(--primary-color);
+  text-align: center;
+  text-decoration: none;
+  border: 2px solid transparent;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  transition: transform var(--transition), border-color var(--transition);
+}
+.option-btn:hover {
+  transform: translateY(-3px);
+  border-color: var(--secondary-color);
+}
+
+/* BACKGROUND HIDE */
+.hide-background {
+  background: none !important;
+}
+
+/* WELCOME MESSAGE */
+.welcome-message {
+  text-align: center;
+  margin-top: 50px;
+}
+.welcome-message h2 {
+  font-size: 1.5rem;
+  color: var(--primary-color);
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .charts-container {
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
 @keyframes blink-animation {
   50% {
     opacity: 0;

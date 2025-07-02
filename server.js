@@ -10,7 +10,12 @@ import jwt from 'jsonwebtoken';
 import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
 
-dotenv.config(); // Carga las variables de entorno desde el archivo .env
+dotenv.config({ path: './.env', override: true });
+console.log('🔧 DB_HOST:', process.env.DB_HOST);
+console.log('🔧 DB_PORT:', process.env.DB_PORT);
+console.log('🔧 DB_USER:', process.env.DB_USER);
+console.log('🔧 DB_NAME:', process.env.DB_NAME);
+
 
 const app = express();
 const port = process.env.PORT || 8080;
@@ -18,6 +23,7 @@ const port = process.env.PORT || 8080;
 const __dirname = path.resolve();  // Obtener la ruta del directorio actual (correcto para Windows)
 
 // Configura CORS para permitir solicitudes solo desde tu frontend
+
 const corsOptions = {
   origin: ['https://uc-learning-hub-production.up.railway.app', 'http://localhost:5173', 'http://localhost:5000','https://educore.academionlinegpt.com'],
   methods: 'GET, POST, PUT, DELETE',
@@ -49,14 +55,14 @@ app.use('/terrenos', express.static(terrenosDirectory)); // Servir archivos est�
 
 // Configuración de la base de datos
 const db = mysql.createPool({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
+  host:     process.env.DB_HOST,
+  user:     process.env.DB_USER,
   password: process.env.DB_PASSWORD,
-  port: process.env.DB_PORT,
   database: process.env.DB_NAME,
-  connectionLimit: 10,
+  port:     Number(process.env.DB_PORT),
   waitForConnections: true,
-  queueLimit: 0,
+  connectionLimit:    10,
+  queueLimit:         0,
 });
 
 // Verificar la conexión a la base de datos
@@ -550,6 +556,18 @@ app.use(express.static(path.join(__dirname, 'dist')));
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
+
+
+setInterval(() => {
+  db.query('SELECT 1', (err) => {
+    if (err) {
+      console.error('❌ Keep-alive falló:', err.message);
+    } else {
+      console.log('✅ Keep-alive OK');
+    }
+  });
+}, 60000); // cada 60 segundos
+
 
 app.listen(port, () => {
   console.log(`Servidor corriendo en http://localhost:${port}`);
